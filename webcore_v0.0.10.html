@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.0.10</title>
+
+<style>
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:linear-gradient(to bottom,#c9f2ff,#eafcff);
+ overflow:hidden;
+}
+
+/* ondas fondo */
+.wave{
+ position:fixed;
+ width:200%;
+ height:200px;
+ bottom:-60px;
+ background:rgba(255,255,255,.35);
+ border-radius:40%;
+ animation:wave 12s linear infinite;
+}
+@keyframes wave{
+ from{transform:translateX(0);}
+ to{transform:translateX(-50%);}
+}
+
+/* glow */
+.glow{
+ position:fixed;top:0;width:100%;height:140px;
+ background:linear-gradient(to bottom,rgba(255,255,255,.85),transparent);
+ pointer-events:none;
+}
+
+/* barra sistema */
+.taskbar{
+ position:fixed;
+ bottom:0;
+ width:100%;
+ height:48px;
+ background:rgba(255,255,255,.6);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 20px rgba(120,200,255,.6);
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 12px;
+}
+
+.start{
+ padding:8px 14px;
+ border-radius:14px;
+ background:linear-gradient(#d7f6ff,#8fe3ff);
+ cursor:pointer;
+ font-weight:bold;
+}
+
+/* menu inicio */
+.menu{
+ position:fixed;
+ bottom:58px;
+ left:10px;
+ width:200px;
+ background:rgba(255,255,255,.7);
+ backdrop-filter:blur(10px);
+ border-radius:16px;
+ box-shadow:0 0 20px rgba(120,200,255,.6);
+ display:none;
+ padding:10px;
+}
+
+/* iconos */
+.icon{
+ width:110px;
+ text-align:center;
+ margin:20px;
+ padding:14px;
+ border-radius:18px;
+ background:rgba(255,255,255,.55);
+ backdrop-filter:blur(8px);
+ box-shadow:0 0 18px rgba(120,200,255,.6);
+ cursor:pointer;
+ display:inline-block;
+ color:#0a6fbf;
+ font-weight:bold;
+}
+
+/* ventanas */
+.win{
+ position:absolute;
+ top:140px;
+ left:120px;
+ width:420px;
+ border-radius:20px;
+ background:rgba(255,255,255,.65);
+ backdrop-filter:blur(12px);
+ box-shadow:0 0 30px rgba(120,200,255,.6);
+ display:none;
+}
+
+.bar{
+ background:linear-gradient(to right,#7fdcff,#bfefff);
+ padding:10px;
+ border-radius:20px 20px 0 0;
+ font-weight:bold;
+ cursor:move;
+}
+
+.cont{padding:20px;text-align:center;}
+
+button{
+ padding:8px 14px;
+ border-radius:12px;
+ border:none;
+ background:linear-gradient(#d7f6ff,#8fe3ff);
+ cursor:pointer;
+ margin:4px;
+}
+
+/* burbujas */
+.bubble{
+ position:fixed;
+ bottom:-60px;
+ width:46px;height:46px;
+ border-radius:50%;
+ background:radial-gradient(circle,#fff,#8fdcff);
+ box-shadow:0 0 18px #9fe4ff;
+ opacity:.6;
+ cursor:pointer;
+ animation:up linear forwards;
+}
+@keyframes up{to{transform:translateY(-120vh);}}
+
+/* hack visual */
+.code{
+ position:fixed;
+ top:0;
+ font-family:monospace;
+ color:#1c7ed6;
+ animation:fall 2s linear forwards;
+}
+@keyframes fall{to{transform:translateY(100vh);opacity:0;}}
+</style>
+
+<script>
+/* ===== reloj ===== */
+function clock(){
+ let d=new Date();
+ document.getElementById("clock").innerText=
+ d.getHours().toString().padStart(2,"0")+":"+
+ d.getMinutes().toString().padStart(2,"0");
+}
+setInterval(clock,1000);
+
+/* ===== menu ===== */
+function toggleMenu(){
+ let m=document.getElementById("menu");
+ m.style.display=m.style.display=="block"?"none":"block";
+}
+
+/* ===== ventanas ===== */
+function openWin(id){document.getElementById(id).style.display="block";}
+function closeWin(id){document.getElementById(id).style.display="none";}
+
+function drag(bar){
+ let w=bar.parentElement,dx,dy,on=false;
+ bar.onmousedown=e=>{on=true;dx=e.offsetX;dy=e.offsetY;}
+ document.onmousemove=e=>{if(on){w.style.left=e.pageX-dx+"px";w.style.top=e.pageY-dy+"px";}}
+ document.onmouseup=()=>on=false;
+}
+
+/* ===== burbujas ===== */
+function bubble(){
+ let b=document.createElement("div");
+ b.className="bubble";
+ b.style.left=Math.random()*100+"vw";
+ b.style.animationDuration=(7+Math.random()*5)+"s";
+ b.onclick=()=>b.remove();
+ document.body.appendChild(b);
+ setTimeout(()=>b.remove(),12000);
+}
+setInterval(bubble,900);
+
+/* ===== hack visual ===== */
+document.addEventListener("keydown",e=>{
+ if(e.key.length==1){
+  let c=document.createElement("div");
+  c.className="code";
+  c.innerText=e.key.toUpperCase()+Math.floor(Math.random()*10);
+  c.style.left=Math.random()*100+"vw";
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(),2000);
+ }
+});
+
+/* ===== inicio ===== */
+window.onload=()=>{
+ clock();
+ document.querySelectorAll(".bar").forEach(drag);
+ setTimeout(()=>alert("WEB CORE v0.0.10 — build final serie 0.0"),600);
+};
+</script>
+
+</head>
+
+<body>
+
+<div class="wave"></div>
+<div class="glow"></div>
+
+<!-- iconos -->
+<div class="icon" onclick="openWin('web')">🌐 Web</div>
+<div class="icon" onclick="openWin('files')">📂 Archivos</div>
+<div class="icon" onclick="openWin('info')">ℹ️ Info</div>
+
+<!-- ventanas -->
+<div id="web" class="win">
+ <div class="bar">WEB CORE — Web</div>
+ <div class="cont">
+  <h3>🚧 WEB EN CONSTRUCCIÓN 🚧</h3>
+  Versión 0.0.10 — FINAL serie 0.0
+  <br><br>
+  <button onclick="closeWin('web')">Cerrar</button>
+ </div>
+</div>
+
+<div id="files" class="win">
+ <div class="bar">Archivos</div>
+ <div class="cont">
+  sistema.txt<br>
+  aero.cfg<br>
+  core.dll<br>
+  <br>
+  <button onclick="closeWin('files')">Cerrar</button>
+ </div>
+</div>
+
+<div id="info" class="win">
+ <div class="bar">Información</div>
+ <div class="cont">
+  WEB CORE<br>
+  Version 0.0.10<br>
+  Última de la serie 0.0<br>
+  Próxima → 0.1
+  <br><br>
+  <button onclick="closeWin('info')">Cerrar</button>
+ </div>
+</div>
+
+<!-- menu -->
+<div id="menu" class="menu">
+ <div onclick="openWin('web')">Abrir Web</div>
+ <div onclick="openWin('files')">Archivos</div>
+ <div onclick="openWin('info')">Info</div>
+</div>
+
+<!-- taskbar -->
+<div class="taskbar">
+ <div class="start" onclick="toggleMenu()">Inicio</div>
+ <div>WEB CORE v0.0.10</div>
+ <div id="clock"></div>
+</div>
+
+</body>
+</html>

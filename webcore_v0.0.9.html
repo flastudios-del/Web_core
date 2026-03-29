@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE — Sistema Aero</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(to bottom,#c9f2ff,#eafcff);
+  overflow:hidden;
+}
+
+/* brillo superior */
+.glow{
+  position:fixed;top:0;width:100%;height:140px;
+  background:linear-gradient(to bottom,rgba(255,255,255,.85),transparent);
+  pointer-events:none;
+}
+
+/* iconos */
+.icon{
+  width:110px;
+  text-align:center;
+  margin:20px;
+  padding:14px;
+  border-radius:18px;
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(8px);
+  box-shadow:0 0 18px rgba(120,200,255,.6);
+  cursor:pointer;
+  display:inline-block;
+  color:#0a6fbf;
+  font-weight:bold;
+}
+
+/* ventanas */
+.win{
+  position:absolute;
+  top:140px;
+  left:120px;
+  width:420px;
+  border-radius:20px;
+  background:rgba(255,255,255,.6);
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 30px rgba(120,200,255,.6);
+  border:1px solid rgba(255,255,255,.9);
+  display:none;
+}
+
+.bar{
+  background:linear-gradient(to right,#7fdcff,#bfefff);
+  padding:10px;
+  border-radius:20px 20px 0 0;
+  font-weight:bold;
+  color:#0a6fbf;
+  cursor:move;
+}
+
+.cont{
+  padding:22px;
+  text-align:center;
+}
+
+/* botones vidrio */
+button{
+  padding:10px 18px;
+  border-radius:14px;
+  border:none;
+  background:linear-gradient(to bottom,#d7f6ff,#8fe3ff);
+  box-shadow:inset 0 2px 6px rgba(255,255,255,.9),0 0 10px #8fe3ff;
+  cursor:pointer;
+  margin:6px;
+}
+
+/* burbujas */
+.bubble{
+  position:fixed;
+  bottom:-60px;
+  width:48px;height:48px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fff,#8fdcff);
+  box-shadow:0 0 18px #9fe4ff;
+  opacity:.6;
+  cursor:pointer;
+  animation:subir linear forwards;
+}
+@keyframes subir{to{transform:translateY(-120vh);}}
+.pop{animation:pop .25s forwards;}
+@keyframes pop{to{transform:scale(1.7);opacity:0;}}
+
+/* hack visual */
+.code{
+  position:fixed;
+  top:0;
+  font-family:monospace;
+  color:#1c7ed6;
+  text-shadow:0 0 8px #9fe4ff;
+  animation:caer 2s linear forwards;
+}
+@keyframes caer{to{transform:translateY(100vh);opacity:0;}}
+</style>
+
+<script>
+/* ===== ventanas ===== */
+function openWin(id){
+  document.getElementById(id).style.display="block";
+}
+function closeWin(id){
+  document.getElementById(id).style.display="none";
+}
+
+/* arrastrar */
+function drag(bar){
+  let win=bar.parentElement,dx,dy,on=false;
+  bar.onmousedown=e=>{on=true;dx=e.offsetX;dy=e.offsetY;}
+  document.onmousemove=e=>{
+    if(on){
+      win.style.left=(e.pageX-dx)+"px";
+      win.style.top=(e.pageY-dy)+"px";
+    }
+  }
+  document.onmouseup=()=>on=false;
+}
+
+/* ===== burbujas ===== */
+function popSound(){
+ try{
+  let c=new (window.AudioContext||window.webkitAudioContext)();
+  let o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);
+  o.frequency.value=700;g.gain.value=.05;
+  o.start();o.stop(c.currentTime+.07);
+ }catch(e){}
+}
+
+function bubble(){
+ let b=document.createElement("div");
+ b.className="bubble";
+ b.style.left=Math.random()*100+"vw";
+ b.style.animationDuration=(7+Math.random()*5)+"s";
+ b.onclick=()=>{b.classList.add("pop");popSound();setTimeout(()=>b.remove(),250);}
+ document.body.appendChild(b);
+ setTimeout(()=>b.remove(),13000);
+}
+setInterval(bubble,900);
+
+/* ===== hack visual falso ===== */
+function hack(k){
+ let d=document.createElement("div");
+ d.className="code";
+ d.innerText=k+Math.floor(Math.random()*10);
+ d.style.left=Math.random()*100+"vw";
+ document.body.appendChild(d);
+ setTimeout(()=>d.remove(),2000);
+}
+document.addEventListener("keydown",e=>{
+ if(e.key.length===1) hack(e.key.toUpperCase());
+});
+
+/* ===== chat ===== */
+function sendMsg(){
+ let i=document.getElementById("msg");
+ let c=document.getElementById("chat");
+ if(i.value.trim()){
+   c.innerHTML+="<br>> "+i.value;
+   i.value="";
+ }
+}
+
+/* ===== juego ===== */
+function game(){
+ let n=Math.floor(Math.random()*5)+1;
+ let g=prompt("Adivina número 1-5");
+ alert(g==n?"Ganaste ✨":"Fallaste 😄 Era "+n);
+}
+
+window.onload=()=>{
+ document.querySelectorAll(".bar").forEach(drag);
+}
+</script>
+
+</head>
+
+<body>
+
+<div class="glow"></div>
+
+<!-- ICONOS ESCRITORIO -->
+<div class="icon" onclick="openWin('w1')">🌐 Web</div>
+<div class="icon" onclick="openWin('w2')">💬 Chat</div>
+<div class="icon" onclick="openWin('w3')">🎮 Juego</div>
+<div class="icon" onclick="openWin('w4')">ℹ️ Info</div>
+
+<!-- VENTANAS -->
+
+<div id="w1" class="win">
+ <div class="bar">WEB CORE — Web</div>
+ <div class="cont">
+  <h2>🚧 WEB EN CONSTRUCCIÓN 🚧</h2>
+  Estilo renovado activo ✨<br><br>
+  Revienta burbujas y presiona teclas para hack visual
+  <br><br>
+  <button onclick="closeWin('w1')">Cerrar</button>
+ </div>
+</div>
+
+<div id="w2" class="win">
+ <div class="bar">Chat Visual</div>
+ <div class="cont">
+  <div id="chat">Conectado...</div><br>
+  <input id="msg">
+  <button onclick="sendMsg()">Enviar</button><br>
+  <button onclick="closeWin('w2')">Cerrar</button>
+ </div>
+</div>
+
+<div id="w3" class="win">
+ <div class="bar">Mini Juego</div>
+ <div class="cont">
+  <button onclick="game()">Jugar</button><br>
+  <button onclick="closeWin('w3')">Cerrar</button>
+ </div>
+</div>
+
+<div id="w4" class="win">
+ <div class="bar">Información</div>
+ <div class="cont">
+  WEB CORE — estilo renovado<br>
+  Sistema visual aero experimental
+  <br><br>
+  <button onclick="closeWin('w4')">Cerrar</button>
+ </div>
+</div>
+
+</body>
+</html>
