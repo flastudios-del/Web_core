@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.2 beta</title>
+
+<style>
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:linear-gradient(to bottom,#b8ecff,#e6fbff);
+}
+
+.top{
+ padding:14px;
+ text-align:center;
+ font-weight:bold;
+ font-size:22px;
+ background:rgba(255,255,255,.75);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 18px rgba(120,200,255,.6);
+ color:#0a6fbf;
+}
+
+.tabs{
+ display:flex;
+ justify-content:center;
+ gap:12px;
+ margin:12px;
+}
+
+.tabbtn{
+ padding:10px 16px;
+ border:none;
+ border-radius:14px;
+ background:linear-gradient(#d7f6ff,#8fe3ff);
+ cursor:pointer;
+ font-weight:bold;
+}
+
+.panel{
+ width:520px;
+ margin:10px auto 80px auto;
+}
+
+.create{
+ padding:14px;
+ border-radius:18px;
+ background:rgba(255,255,255,.75);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 18px rgba(120,200,255,.5);
+ margin-bottom:16px;
+}
+
+textarea{
+ width:100%;
+ height:70px;
+ border:none;
+ border-radius:12px;
+ padding:10px;
+ resize:none;
+}
+
+.post{
+ margin:14px 0;
+ border-radius:18px;
+ background:rgba(255,255,255,.8);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 18px rgba(120,200,255,.5);
+ padding:14px;
+}
+
+.user{font-weight:bold;color:#0a6fbf;}
+
+.actions{
+ display:flex;
+ gap:10px;
+ margin-top:8px;
+}
+
+button{
+ border:none;
+ padding:8px 14px;
+ border-radius:14px;
+ background:linear-gradient(#d7f6ff,#8fe3ff);
+ cursor:pointer;
+ font-weight:bold;
+}
+
+.profile{
+ padding:20px;
+ border-radius:20px;
+ background:rgba(255,255,255,.8);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 20px rgba(120,200,255,.5);
+ text-align:center;
+}
+
+.avatar{
+ width:90px;
+ height:90px;
+ border-radius:50%;
+ background:linear-gradient(#c8f3ff,#9fe4ff);
+ margin:0 auto 10px auto;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:30px;
+}
+
+.hidden{display:none;}
+.tag{font-size:13px;color:#2aa9ff;}
+</style>
+
+<script>
+let postCount=2;
+
+function showTab(id){
+ document.getElementById("feed").classList.add("hidden");
+ document.getElementById("profile").classList.add("hidden");
+ document.getElementById(id).classList.remove("hidden");
+}
+
+function addPost(){
+ let txt=document.getElementById("postText").value.trim();
+ if(!txt){alert("Escribe algo 🙂"); return;}
+
+ let p=document.createElement("div");
+ p.className="post";
+ p.innerHTML=
+  "<div class='user'>@tu_usuario</div>"+
+  txt+
+  "<div class='actions'>"+
+  "<button onclick='like(this)'>🤍</button>"+
+  "<button disabled>💬</button>"+
+  "</div>";
+
+ document.getElementById("posts").prepend(p);
+ document.getElementById("postText").value="";
+ postCount++;
+ document.getElementById("pc").innerText=postCount;
+}
+
+function like(btn){
+ btn.innerText="💙";
+ btn.disabled=true;
+}
+</script>
+
+</head>
+
+<body>
+
+<div class="top">
+🌐 WEB CORE v0.2 beta
+<div class="tag">tabs + perfil + posts demo</div>
+</div>
+
+<div class="tabs">
+<button class="tabbtn" onclick="showTab('feed')">Inicio</button>
+<button class="tabbtn" onclick="showTab('profile')">Perfil</button>
+</div>
+
+<div class="panel">
+
+<div id="feed">
+
+<div class="create">
+<textarea id="postText" placeholder="Publicar en WEB CORE..."></textarea>
+<br><br>
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="posts">
+
+<div class="post">
+<div class="user">@core_news</div>
+Build v0.2 activa 🚧
+<div class="actions">
+<button onclick="like(this)">🤍</button>
+<button disabled>💬</button>
+</div>
+</div>
+
+<div class="post">
+<div class="user">@beta_user</div>
+Sistema de pestañas listo
+<div class="actions">
+<button onclick="like(this)">🤍</button>
+<button disabled>💬</button>
+</div>
+</div>
+
+</div>
+</div>
+
+<div id="profile" class="hidden">
+<div class="profile">
+<div class="avatar">👤</div>
+<b>@tu_usuario</b><br>
+Tester beta<br><br>
+
+Posts: <b id="pc">2</b><br>
+Guardado: ❌<br>
+Mensajes: ❌<br><br>
+
+WEB CORE v0.2
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

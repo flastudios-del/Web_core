@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.7</title>
+
+<style>
+:root{
+ --bg1:#b8ecff; --bg2:#e6fbff; --glass:#ffffffcc; --text:#0a6fbf;
+}
+
+.aero{}
+.dark{--bg1:#0b1d2a;--bg2:#12364d;--glass:#1e3c5acc;--text:#9fe4ff;}
+.mint{--bg1:#c8ffe8;--bg2:#ecfff7;--glass:#ffffffdd;--text:#0a8f6a;}
+.sunset{--bg1:#ffd6a5;--bg2:#fff1e0;--text:#b85c00;}
+.purple{--bg1:#e0ccff;--bg2:#f5f0ff;--text:#5b2aa8;}
+.neon{--bg1:#000;--bg2:#111;--glass:#00ffee22;--text:#00ffee;}
+.ice{--bg1:#e6f7ff;--bg2:#ffffff;--text:#0099cc;}
+.matrix{--bg1:#000;--bg2:#001100;--glass:#003300cc;--text:#00ff55;}
+.candy{--bg1:#ffd1dc;--bg2:#ffeef2;--text:#cc3366;}
+.glass{--bg1:#dfe9f3;--bg2:#ffffff;--glass:#ffffff88;--text:#336699;}
+
+body{
+ margin:0;
+ font-family:Arial;
+ background:linear-gradient(var(--bg1),var(--bg2));
+ transition:.4s;
+}
+
+.side{
+ position:fixed;
+ left:0;top:0;bottom:0;
+ width:200px;
+ background:var(--glass);
+ padding:12px;
+ backdrop-filter:blur(8px);
+}
+
+.main{margin-left:220px;padding:20px}
+
+.card,.post{
+ background:var(--glass);
+ padding:14px;
+ border-radius:18px;
+ margin-bottom:14px;
+ color:var(--text);
+}
+
+textarea,input,select{
+ width:100%;
+ padding:8px;
+ border:none;
+ border-radius:10px;
+ margin-top:6px;
+}
+
+button{
+ padding:7px 12px;
+ border:none;
+ border-radius:12px;
+ background:#9fe4ff;
+ font-weight:bold;
+ cursor:pointer;
+ margin-top:6px;
+}
+
+.imgreal{max-width:100%;border-radius:12px;margin-top:8px}
+.comment{background:#ffffff88;padding:6px;border-radius:8px;margin-top:6px;font-size:14px}
+.avatar{width:70px;height:70px;border-radius:50%;object-fit:cover}
+.hidden{display:none}
+.tag{font-size:12px;background:#00000022;padding:3px 6px;border-radius:6px;margin-right:4px}
+.pin{font-size:12px;font-weight:bold}
+</style>
+
+<script>
+let themeList=["aero","dark","mint","sunset","purple","neon","ice","matrix","candy","glass"];
+
+function setThemeSel(){
+ let v=themeSel.value;
+ document.body.className=v;
+ localStorage.wc_theme=v;
+}
+
+/* NAV */
+function view(id){
+ feed.classList.add("hidden");
+ profile.classList.add("hidden");
+ document.getElementById(id).classList.remove("hidden");
+}
+
+/* STORAGE */
+function getPosts(){return JSON.parse(localStorage.wc_posts||"[]")}
+function savePosts(a){localStorage.wc_posts=JSON.stringify(a)}
+
+/* PROFILE */
+function saveProfile(){
+ localStorage.wc_name=pname.value;
+ localStorage.wc_bio=pbio.value;
+ if(avatarInput.files[0]){
+  let r=new FileReader();
+  r.onload=()=>{localStorage.wc_avatar=r.result; renderPosts();}
+  r.readAsDataURL(avatarInput.files[0]);
+ }
+}
+
+/* FOLLOW SIM */
+function toggleFollow(){
+ let f=localStorage.wc_follow==="1";
+ localStorage.wc_follow=f?"0":"1";
+ followBtn.innerText=f?"Seguir":"Siguiendo";
+}
+
+/* POST CREATE */
+function addPost(){
+ let text=postText.value.trim();
+ if(!text) return;
+
+ let tags=(tagInput.value||"").split(",").map(t=>t.trim()).filter(Boolean);
+
+ let file=imgInput.files[0];
+ if(file){
+  let r=new FileReader();
+  r.onload=()=>makePost(text,r.result,tags);
+  r.readAsDataURL(file);
+ } else makePost(text,null,tags);
+}
+
+function makePost(text,img,tags){
+ let arr=getPosts();
+ arr.unshift({text,img,tags,comments:[],likes:0,pin:false});
+ savePosts(arr);
+ renderPosts();
+ postText.value=""; imgInput.value=""; tagInput.value="";
+}
+
+/* ACTIONS */
+function likePost(i){let a=getPosts();a[i].likes++;savePosts(a);renderPosts();}
+function delPost(i){let a=getPosts();a.splice(i,1);savePosts(a);renderPosts();}
+function editPost(i){
+ let a=getPosts();
+ let n=prompt("Editar:",a[i].text);
+ if(n){a[i].text=n;savePosts(a);renderPosts();}
+}
+function pinPost(i){
+ let a=getPosts();
+ a[i].pin=!a[i].pin;
+ savePosts(a);
+ renderPosts();
+}
+
+/* COMMENT */
+function addComment(i,inp){
+ if(!inp.value) return;
+ let a=getPosts();
+ a[i].comments.push(inp.value);
+ savePosts(a);
+ renderPosts();
+}
+
+/* SEARCH */
+function searchPosts(){
+ let q=search.value.toLowerCase();
+ document.querySelectorAll(".post").forEach(p=>{
+  p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";
+ });
+}
+
+/* RENDER */
+function renderPosts(){
+ let arr=getPosts().sort((a,b)=>b.pin-a.pin);
+ posts.innerHTML="";
+ arr.forEach((p,i)=>{
+  let d=document.createElement("div");
+  d.className="post";
+
+  let av=localStorage.wc_avatar||"";
+  let name=localStorage.wc_name||"@user";
+
+  let html="";
+  if(p.pin) html+="<div class=pin>📌 FIJADO</div>";
+  if(av) html+="<img class=avatar src='"+av+"'><br>";
+
+  html+="<b>"+name+"</b><br>"+p.text;
+
+  if(p.tags) p.tags.forEach(t=> html+="<span class=tag>#"+t+"</span>");
+
+  if(p.img) html+="<img class=imgreal src='"+p.img+"'>";
+
+  html+="<div>❤️ "+p.likes+"</div>";
+
+  html+="<button onclick=likePost("+i+")>Like</button>";
+  html+="<button onclick=editPost("+i+")>Editar</button>";
+  html+="<button onclick=delPost("+i+")>Borrar</button>";
+  html+="<button onclick=pinPost("+i+")>Fijar</button>";
+
+  html+="<div>Comentarios</div>";
+  p.comments.forEach(c=> html+="<div class=comment>"+c+"</div>");
+
+  html+="<input placeholder='comentar' onkeydown=\"if(event.key==='Enter') addComment("+i+",this)\">";
+
+  d.innerHTML=html;
+  posts.appendChild(d);
+ });
+
+ count.innerText=arr.length;
+}
+
+/* INIT */
+window.onload=()=>{
+ pname.value=localStorage.wc_name||"@user";
+ pbio.value=localStorage.wc_bio||"";
+ themeSel.value=localStorage.wc_theme||"aero";
+ setThemeSel();
+ followBtn.innerText=localStorage.wc_follow==="1"?"Siguiendo":"Seguir";
+ renderPosts();
+}
+</script>
+
+</head>
+
+<body class="aero">
+
+<div class="side">
+
+<b>WEB CORE v0.7</b>
+
+<button onclick="view('feed')">Inicio</button>
+<button onclick="view('profile')">Perfil</button>
+
+<hr>
+
+🎨 Tema:
+<select id="themeSel" onchange="setThemeSel()">
+<option value="aero">Aero</option>
+<option value="dark">Dark</option>
+<option value="mint">Mint</option>
+<option value="sunset">Sunset</option>
+<option value="purple">Purple</option>
+<option value="neon">Neon</option>
+<option value="ice">Ice</option>
+<option value="matrix">Matrix</option>
+<option value="candy">Candy</option>
+<option value="glass">Glass</option>
+</select>
+
+</div>
+
+<div class="main">
+
+<div id="feed">
+
+<div class="card">
+<input id="search" placeholder="Buscar texto o #tag" oninput="searchPosts()">
+</div>
+
+<div class="card">
+<textarea id="postText" placeholder="Post + #tags"></textarea>
+<input id="tagInput" placeholder="tags separadas por coma">
+<input type="file" id="imgInput" accept="image/*">
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="posts"></div>
+
+</div>
+
+<div id="profile" class="hidden">
+
+<div class="card">
+<input id="pname" placeholder="Nombre">
+<input id="pbio" placeholder="Bio">
+<input type="file" id="avatarInput" accept="image/*">
+<button onclick="saveProfile()">Guardar perfil</button>
+<button id="followBtn" onclick="toggleFollow()">Seguir</button>
+</div>
+
+<div class="card">
+Posts: <b id="count">0</b><br>
+Versión: v0.7<br>
+Upgrade grande ✔️
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

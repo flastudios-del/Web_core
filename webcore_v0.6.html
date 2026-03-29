@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.6</title>
+
+<style>
+:root{
+ --bg1:#b8ecff; --bg2:#e6fbff; --glass:#ffffffcc; --text:#0a6fbf;
+}
+.aero{}
+.dark{--bg1:#0b1d2a;--bg2:#12364d;--glass:#1e3c5acc;--text:#9fe4ff;}
+.mint{--bg1:#c8ffe8;--bg2:#ecfff7;--glass:#ffffffdd;--text:#0a8f6a;}
+.sunset{--bg1:#ffd6a5;--bg2:#fff1e0;--glass:#ffffffcc;--text:#b85c00;}
+.purple{--bg1:#e0ccff;--bg2:#f5f0ff;--glass:#ffffffcc;--text:#5b2aa8;}
+
+body{margin:0;font-family:Arial;background:linear-gradient(var(--bg1),var(--bg2));transition:.4s;}
+
+.side{
+ position:fixed;left:0;top:0;bottom:0;width:180px;
+ background:var(--glass);padding:12px
+}
+
+.main{margin-left:200px}
+
+.card,.post{
+ background:var(--glass);
+ padding:14px;border-radius:18px;margin-bottom:14px;color:var(--text)
+}
+
+textarea,input{width:100%;padding:8px;border:none;border-radius:10px;margin-top:6px}
+
+button{
+ padding:7px 12px;border:none;border-radius:12px;
+ background:#9fe4ff;font-weight:bold;cursor:pointer;margin-top:6px
+}
+
+.imgreal{max-width:100%;border-radius:12px;margin-top:8px}
+.comment{background:#ffffff88;padding:6px;border-radius:8px;margin-top:6px;font-size:14px}
+.hidden{display:none}
+.avatar{width:70px;height:70px;border-radius:50%;object-fit:cover}
+.small{font-size:12px;opacity:.8}
+.like{cursor:pointer;font-weight:bold}
+</style>
+
+<script>
+let themes=["aero","dark","mint","sunset","purple"];
+
+function setTheme(i){
+ document.body.className=themes[i];
+ localStorage.wc_theme=i;
+}
+
+function view(id){
+ feed.classList.add("hidden");
+ profile.classList.add("hidden");
+ document.getElementById(id).classList.remove("hidden");
+}
+
+function getPosts(){
+ return JSON.parse(localStorage.wc_posts||"[]");
+}
+
+function savePosts(a){
+ localStorage.wc_posts=JSON.stringify(a);
+}
+
+/* PROFILE */
+function saveProfile(){
+ localStorage.wc_name=pname.value;
+ localStorage.wc_bio=pbio.value;
+ if(avatarInput.files[0]){
+  let r=new FileReader();
+  r.onload=()=>{localStorage.wc_avatar=r.result; renderPosts();}
+  r.readAsDataURL(avatarInput.files[0]);
+ }
+}
+
+/* POST CREATE */
+function addPost(){
+ let t=postText.value.trim();
+ if(!t) return;
+
+ let file=imgInput.files[0];
+ if(file){
+  let r=new FileReader();
+  r.onload=()=>makePost(t,r.result);
+  r.readAsDataURL(file);
+ } else makePost(t,null);
+}
+
+function makePost(text,img){
+ let arr=getPosts();
+ arr.unshift({text,img,comments:[],likes:0});
+ savePosts(arr);
+ renderPosts();
+ postText.value=""; imgInput.value="";
+}
+
+/* LIKE */
+function likePost(i){
+ let arr=getPosts();
+ arr[i].likes++;
+ savePosts(arr);
+ renderPosts();
+}
+
+/* DELETE */
+function delPost(i){
+ let arr=getPosts();
+ arr.splice(i,1);
+ savePosts(arr);
+ renderPosts();
+}
+
+/* EDIT */
+function editPost(i){
+ let arr=getPosts();
+ let n=prompt("Editar post:",arr[i].text);
+ if(n){arr[i].text=n; savePosts(arr); renderPosts();}
+}
+
+/* COMMENTS */
+function addComment(i,input){
+ if(!input.value) return;
+ let arr=getPosts();
+ arr[i].comments.push(input.value);
+ savePosts(arr);
+ renderPosts();
+}
+
+/* SEARCH */
+function searchPosts(){
+ let q=search.value.toLowerCase();
+ document.querySelectorAll(".post").forEach(p=>{
+  p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";
+ });
+}
+
+/* RENDER */
+function renderPosts(){
+ let arr=getPosts();
+ posts.innerHTML="";
+ arr.forEach((p,i)=>{
+  let d=document.createElement("div");
+  d.className="post";
+  let av=localStorage.wc_avatar||"";
+  let name=localStorage.wc_name||"@user";
+  let html="";
+  if(av) html+="<img class=avatar src='"+av+"'><br>";
+  html+="<b>"+name+"</b><br>"+p.text;
+  if(p.img) html+="<img class=imgreal src='"+p.img+"'>";
+  html+="<div class=small>❤️ "+p.likes+
+        " <span class=like onclick=likePost("+i+")>Like</span></div>";
+  html+="<button onclick=editPost("+i+")>Editar</button>";
+  html+="<button onclick=delPost("+i+")>Borrar</button>";
+  html+="<div class=small>Comentarios</div>";
+  p.comments.forEach(c=>html+="<div class=comment>"+c+"</div>");
+  html+="<input placeholder='comentar' onkeydown=\"if(event.key==='Enter') addComment("+i+",this)\">";
+  d.innerHTML=html;
+  posts.appendChild(d);
+ });
+ count.innerText=arr.length;
+}
+
+/* INIT */
+window.onload=()=>{
+ pname.value=localStorage.wc_name||"@user";
+ pbio.value=localStorage.wc_bio||"";
+ if(localStorage.wc_theme) setTheme(localStorage.wc_theme);
+ renderPosts();
+}
+</script>
+
+</head>
+
+<body class="aero">
+
+<div class="side">
+<b>WEB CORE v0.6</b>
+<button onclick="view('feed')">Inicio</button>
+<button onclick="view('profile')">Perfil</button>
+<hr>
+Temas:
+<button onclick="setTheme(0)">Aero</button>
+<button onclick="setTheme(1)">Dark</button>
+<button onclick="setTheme(2)">Mint</button>
+<button onclick="setTheme(3)">Sunset</button>
+<button onclick="setTheme(4)">Purple</button>
+</div>
+
+<div class="main">
+
+<div id="feed" style="padding:20px">
+
+<div class="card">
+<input id="search" placeholder="Buscar posts" oninput="searchPosts()">
+</div>
+
+<div class="card">
+<textarea id="postText"></textarea>
+<input type="file" id="imgInput" accept="image/*">
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="posts"></div>
+
+</div>
+
+<div id="profile" class="hidden" style="padding:20px">
+
+<div class="card">
+Nombre <input id="pname">
+Bio <input id="pbio">
+Avatar <input type="file" id="avatarInput" accept="image/*">
+<button onclick="saveProfile()">Guardar</button>
+</div>
+
+<div class="card">
+Posts: <b id="count">0</b><br>
+Versión: v0.6
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

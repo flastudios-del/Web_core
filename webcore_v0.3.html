@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.3 beta</title>
+
+<style>
+body{margin:0;font-family:Arial;background:linear-gradient(#b8ecff,#e6fbff);}
+.top{padding:14px;text-align:center;font-size:22px;font-weight:bold;background:#ffffffcc;color:#0a6fbf}
+.tabs{display:flex;justify-content:center;gap:10px;margin:10px}
+button{padding:8px 14px;border:none;border-radius:14px;background:#9fe4ff;font-weight:bold;cursor:pointer}
+.panel{width:520px;margin:10px auto}
+.card,.post{background:#ffffffdd;padding:14px;border-radius:18px;margin-bottom:14px}
+textarea{width:100%;height:70px;border:none;border-radius:12px;padding:10px}
+.imgdemo{height:140px;border-radius:12px;background:linear-gradient(#c8f3ff,#9fe4ff);
+display:flex;align-items:center;justify-content:center;margin-top:8px}
+.user{font-weight:bold;color:#0a6fbf}
+.hidden{display:none}
+</style>
+
+<script>
+let postCount=1;
+
+function tab(id){
+ feed.classList.add("hidden");
+ profile.classList.add("hidden");
+ document.getElementById(id).classList.remove("hidden");
+}
+
+function addPost(){
+ let t=postText.value.trim();
+ if(!t) return;
+ let p=document.createElement("div");
+ p.className="post";
+ p.innerHTML="<div class=user>@tu_usuario</div>"+t+
+ (addImg.checked?"<div class=imgdemo>imagen demo</div>":"");
+ posts.prepend(p);
+ postText.value="";
+ addImg.checked=false;
+ pc.innerText=++postCount;
+}
+</script>
+
+</head>
+<body>
+
+<div class="top">🌐 WEB CORE v0.3 beta</div>
+
+<div class="tabs">
+<button onclick="tab('feed')">Inicio</button>
+<button onclick="tab('profile')">Perfil</button>
+</div>
+
+<div class="panel">
+
+<div id="feed">
+<div class="card">
+<textarea id="postText"></textarea>
+<label><input type="checkbox" id="addImg"> añadir imagen demo</label>
+<br><br>
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="posts">
+<div class="post">
+<div class="user">@core</div>
+v0.3 corregida activa
+<div class="imgdemo">preview</div>
+</div>
+</div>
+</div>
+
+<div id="profile" class="hidden">
+<div class="card">
+👤 <b>@tu_usuario</b><br><br>
+Posts: <b id="pc">1</b><br>
+Imágenes demo: ✔️<br>
+Versión: v0.3
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

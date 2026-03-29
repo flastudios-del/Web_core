@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.4 — Temas</title>
+
+<style>
+:root{
+ --bg1:#b8ecff; --bg2:#e6fbff; --glass:#ffffffcc; --text:#0a6fbf;
+}
+.aero{}
+.dark{--bg1:#0b1d2a;--bg2:#12364d;--glass:#1e3c5acc;--text:#9fe4ff;}
+.mint{--bg1:#c8ffe8;--bg2:#ecfff7;--glass:#ffffffdd;--text:#0a8f6a;}
+
+body{
+ margin:0;
+ font-family:Arial;
+ background:linear-gradient(var(--bg1),var(--bg2));
+ transition:.4s;
+}
+
+.top{
+ padding:14px;
+ text-align:center;
+ font-size:22px;
+ font-weight:bold;
+ background:var(--glass);
+ color:var(--text);
+}
+
+.tabs{
+ display:flex;
+ justify-content:center;
+ gap:10px;
+ margin:10px;
+}
+
+.panel{
+ width:520px;
+ margin:10px auto;
+}
+
+.card,.post{
+ background:var(--glass);
+ padding:14px;
+ border-radius:18px;
+ margin-bottom:14px;
+ color:var(--text);
+}
+
+textarea{
+ width:100%;
+ height:70px;
+ border:none;
+ border-radius:12px;
+ padding:10px;
+}
+
+button{
+ padding:8px 14px;
+ border:none;
+ border-radius:14px;
+ background:#9fe4ff;
+ font-weight:bold;
+ cursor:pointer;
+}
+
+.imgdemo{
+ height:140px;
+ border-radius:12px;
+ background:linear-gradient(#c8f3ff,#9fe4ff);
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ margin-top:8px;
+ font-weight:bold;
+}
+
+.user{font-weight:bold}
+.hidden{display:none}
+</style>
+
+<script>
+let themes=["aero","dark","mint"];
+let ti=0;
+let postCount=1;
+
+function switchTheme(){
+ ti=(ti+1)%themes.length;
+ document.body.className=themes[ti];
+ themeName.innerText=themes[ti];
+}
+
+function tab(id){
+ feed.classList.add("hidden");
+ profile.classList.add("hidden");
+ document.getElementById(id).classList.remove("hidden");
+}
+
+function addPost(){
+ let t=postText.value.trim();
+ if(!t) return;
+
+ let html="<div class='user'>@tu_usuario</div>"+t;
+
+ if(addImg.checked){
+   html+="<div class='imgdemo'>imagen demo</div>";
+ }
+
+ let p=document.createElement("div");
+ p.className="post";
+ p.innerHTML=html;
+
+ posts.prepend(p);
+
+ postText.value="";
+ addImg.checked=false;
+ pc.innerText=++postCount;
+}
+</script>
+
+</head>
+
+<body class="aero">
+
+<div class="top">
+🌐 WEB CORE v0.4
+<br>
+<button onclick="switchTheme()">Cambiar tema</button>
+<br>
+Tema: <span id="themeName">aero</span>
+</div>
+
+<div class="tabs">
+<button onclick="tab('feed')">Inicio</button>
+<button onclick="tab('profile')">Perfil</button>
+</div>
+
+<div class="panel">
+
+<!-- FEED -->
+<div id="feed">
+
+<div class="card">
+<textarea id="postText" placeholder="Publicar..."></textarea>
+
+<label>
+<input type="checkbox" id="addImg">
+añadir imagen demo
+</label>
+
+<br><br>
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="posts">
+<div class="post">
+<div class="user">@core</div>
+v0.4 corregida con temas + imagen demo 🎨
+<div class="imgdemo">preview</div>
+</div>
+</div>
+
+</div>
+
+<!-- PERFIL -->
+<div id="profile" class="hidden">
+<div class="card">
+👤 @tu_usuario<br><br>
+Posts: <b id="pc">1</b><br>
+Temas: 3<br>
+Imagen demo: ✔️<br>
+Versión: v0.4
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

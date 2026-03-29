@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v0.1 beta</title>
+
+<style>
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:linear-gradient(to bottom,#b8ecff,#e6fbff);
+}
+
+/* barra superior */
+.top{
+ position:sticky;
+ top:0;
+ padding:14px;
+ text-align:center;
+ font-weight:bold;
+ font-size:22px;
+ background:rgba(255,255,255,.7);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 18px rgba(120,200,255,.6);
+ color:#0a6fbf;
+}
+
+/* caja crear post */
+.create{
+ margin:18px auto;
+ width:520px;
+ padding:16px;
+ border-radius:18px;
+ background:rgba(255,255,255,.7);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 18px rgba(120,200,255,.5);
+}
+
+textarea{
+ width:100%;
+ height:70px;
+ border-radius:12px;
+ border:none;
+ padding:10px;
+ resize:none;
+}
+
+/* feed */
+.feed{
+ width:520px;
+ margin:0 auto 80px auto;
+}
+
+.post{
+ margin:16px 0;
+ border-radius:20px;
+ background:rgba(255,255,255,.75);
+ backdrop-filter:blur(10px);
+ box-shadow:0 0 20px rgba(120,200,255,.5);
+ padding:16px;
+}
+
+.user{
+ font-weight:bold;
+ color:#0a6fbf;
+}
+
+.img{
+ height:180px;
+ border-radius:14px;
+ background:linear-gradient(45deg,#c8f3ff,#9fe4ff);
+ margin:10px 0;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ color:#0a6fbf;
+}
+
+/* botones */
+.actions{
+ display:flex;
+ gap:10px;
+}
+
+button{
+ border:none;
+ padding:8px 14px;
+ border-radius:14px;
+ background:linear-gradient(#d7f6ff,#8fe3ff);
+ cursor:pointer;
+ font-weight:bold;
+}
+.tag{
+ text-align:center;
+ margin-top:6px;
+ color:#2aa9ff;
+ font-size:14px;
+}
+</style>
+
+<script>
+function fakePost(){
+ alert("Demo beta — aún no guarda posts 😄");
+}
+function like(btn){
+ btn.innerText="💙";
+}
+</script>
+
+</head>
+
+<body>
+
+<div class="top">
+🌐 WEB CORE v0.1 beta
+<div class="tag">mezcla feed — build incompleta</div>
+</div>
+
+<div class="create">
+<textarea placeholder="¿Qué estás pensando en WEB CORE?"></textarea>
+<br><br>
+<button onclick="fakePost()">Publicar (beta)</button>
+</div>
+
+<div class="feed">
+
+<div class="post">
+<div class="user">@core_dev</div>
+Primera build social experimental
+<div class="img">imagen demo</div>
+<div class="actions">
+<button onclick="like(this)">🤍</button>
+<button>💬</button>
+<button>↗</button>
+</div>
+</div>
+
+<div class="post">
+<div class="user">@aero_user</div>
+Probando el estilo renovado
+<div class="img">preview</div>
+<div class="actions">
+<button onclick="like(this)">🤍</button>
+<button>💬</button>
+<button>↗</button>
+</div>
+</div>
+
+<div class="post">
+<div class="user">@beta</div>
+Feed híbrido activo 🚧
+<div class="actions">
+<button onclick="like(this)">🤍</button>
+<button>💬</button>
+<button>↗</button>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
