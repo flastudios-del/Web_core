@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v1.2 Mejorada</title>
+<style>
+:root{--bg1:#b8ecff;--bg2:#e6fbff;--text:#0a6fbf;}
+body{margin:0;font-family:Arial;background:linear-gradient(var(--bg1),var(--bg2));transition:.3s;position:relative;overflow:hidden;color:var(--text);}
+.side{position:fixed;left:0;top:0;bottom:0;width:230px;background:#ffffffcc;padding:12px;overflow:auto;}
+.main{margin-left:250px;padding:20px;}
+.card,.post{background:#ffffffcc;padding:14px;border-radius:14px;margin-bottom:14px;color:var(--text);}
+textarea,input,select{width:100%;padding:8px;border-radius:8px;border:none;margin-top:6px;}
+button{padding:6px 10px;border:none;border-radius:8px;background:#9fe4ff;font-weight:bold;cursor:pointer;margin-top:6px;}
+.img{max-width:100%;border-radius:10px;margin-top:8px;}
+.comment{background:#ffffff88;padding:6px;border-radius:6px;margin-top:6px;font-size:13px;}
+.hidden{display:none;}
+.tag{font-size:11px;background:#0002;padding:2px 6px;border-radius:6px;margin-right:4px;}
+.chatbox{height:240px;overflow:auto;background:#ffffffaa;padding:8px;border-radius:10px;margin-bottom:8px;}
+.msg{background:#0001;padding:6px;border-radius:6px;margin-bottom:6px;font-size:14px;}
+#notify{position:fixed;bottom:20px;right:20px;background:#000;color:#fff;padding:10px;border-radius:10px;display:none;}
+.bubble{position:absolute;border-radius:50%;background:#00ffff88;pointer-events:none;animation:rise 5s linear infinite;}
+@keyframes rise{0%{transform:translateY(100vh) scale(1)}100%{transform:translateY(-50px) scale(0.5)}}
+#hackZone{width:100%;height:150px;background:#0008;color:#0f0;padding:8px;overflow:auto;font-family:monospace;cursor:text;}
+</style>
+</head>
+<body>
+
+<div class="side">
+<b>WEB CORE v1.2</b><br>
+Usuario: <b id="userLabel">guest</b><br><br>
+<button onclick="view('feed')">Inicio</button>
+<button onclick="view('favs')">Favoritos</button>
+<button onclick="view('profile')">Perfil</button>
+<button onclick="view('chat')">Chat</button>
+<button onclick="view('hack')">Hack Zone</button>
+<button onclick="downloadLicense()">LICENSE</button>
+<hr>
+<h4>Temas</h4>
+<select id="themeSel" size="16" onchange="setTheme()"></select>
+<hr>
+<h4>Crear tu tema</h4>
+<input type="color" id="bg1"> <input type="color" id="bg2"> <input type="color" id="txtC">
+<button onclick="saveCustomTheme()">Guardar tema</button>
+</div>
+
+<div class="main">
+
+<!-- LOGIN -->
+<div id="loginPage" class="page">
+<div class="card">
+<h3>Crear cuenta</h3>
+<input id="newUser" placeholder="Usuario">
+<input id="newPass" type="password" placeholder="Contraseña">
+<button onclick="createAccount()">Crear cuenta</button>
+</div>
+<div class="card">
+<h3>Iniciar sesión</h3>
+<input id="loginUser" placeholder="Usuario">
+<input id="loginPass" type="password" placeholder="Contraseña">
+<button onclick="login()">Entrar</button>
+</div>
+</div>
+
+<!-- FEED -->
+<div id="feed" class="page hidden">
+<div class="card">
+<input id="search" placeholder="Buscar posts" oninput="searchPosts()">
+</div>
+<div class="card">
+<textarea id="postText" placeholder="Escribe tu post..."></textarea>
+<input id="tagInput" placeholder="tags separados por comas">
+<input type="file" id="imgInput">
+<button onclick="addPost()">Publicar</button>
+</div>
+<div id="posts"></div>
+</div>
+
+<!-- FAVORITOS -->
+<div id="favs" class="page hidden"><div id="favPosts"></div></div>
+
+<!-- PERFIL -->
+<div id="profile" class="page hidden">
+<div class="card">
+<input id="pname" placeholder="nombre">
+<input id="pbio" placeholder="bio">
+<input type="file" id="avatarInput">
+<button onclick="saveProfile()">Guardar perfil</button>
+</div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="page hidden">
+<div class="card">
+<h3>Chat WEB CORE</h3>
+<div id="chatlog" class="chatbox"></div>
+<input id="chatText" placeholder="mensaje" onkeydown="if(event.key==='Enter') sendChat()">
+<button onclick="sendChat()">Enviar</button>
+</div>
+</div>
+
+<!-- HACK -->
+<div id="hack" class="page hidden">
+<div class="card">
+<h3>💻 Zona Hack</h3>
+<div id="hackZone"></div>
+<p>Presiona letras para ver efecto “hackeo”</p>
+</div>
+</div>
+
+</div>
+
+<div id="notify"></div>
+
+<script>
+/* ====== TEMAS ====== */
+const temasPredefinidos=["aero","dark","mint","sunset","neon","matrix","ocean","lava","glass","retro","cyberblue","gold","emerald","iceblue","midnight","terminal","chrome"];
+const themeSel=document.getElementById("themeSel");
+temasPredefinidos.forEach(t=>{let o=document.createElement("option");o.value=t;o.innerText=t;themeSel.appendChild(o);});
+
+function setTheme(){
+ document.body.className=themeSel.value;
+ applyCustomTheme(); // aplica encima si hay tema personalizado
+}
+
+/* ====== CUENTAS ====== */
+function accountsKey(){return "wc_accounts"}
+function createAccount(){
+  const u=document.getElementById("newUser").value.trim();
+  const p=document.getElementById("newPass").value;
+  if(!u||!p){alert("Rellena ambos campos"); return;}
+  let a=JSON.parse(localStorage[accountsKey()]||"{}");
+  if(a[u]){alert("Usuario ya existe"); return;}
+  a[u]={pass:p};
+  localStorage[accountsKey()]=JSON.stringify(a);
+  alert("Cuenta creada, ahora inicia sesión");
+}
+function login(){
+  const u=document.getElementById("loginUser").value.trim();
+  const p=document.getElementById("loginPass").value;
+  let a=JSON.parse(localStorage[accountsKey()]||"{}");
+  if(!a[u]){alert("Usuario no existe"); return;}
+  if(a[u].pass!==p){alert("Contraseña incorrecta"); return;}
+  localStorage.wc_user=u;
+  initUser();
+}
+function logout(){localStorage.removeItem("wc_user");location.reload()}
+
+/* ====== PAGINAS ====== */
+function view(id){document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));document.getElementById(id).classList.remove("hidden"); if(id==="chat") loadChat();}
+
+/* ====== USUARIO ====== */
+const CU=()=>localStorage.wc_user||"guest";
+const KU=k=>CU()+"_"+k;
+
+/* ====== POSTS ====== */
+const GP=()=>JSON.parse(localStorage[KU("posts")]||"[]");
+const SP=a=>localStorage[KU("posts")]=JSON.stringify(a);
+function addPost(){let t=postText.value.trim(); if(!t) return; let tags=tagInput.value.split(",").map(x=>x.trim()).filter(Boolean); let f=imgInput.files[0]; if(f){let r=new FileReader(); r.onload=()=>mk(t,r.result,tags); r.readAsDataURL(f);} else mk(t,null,tags);}
+function mk(t,img,tags){let a=GP();a.unshift({t,img,tags,likes:0,comments:[],fav:false,pin:false});SP(a);render(); postText.value=""; tagInput.value="";}
+function like(i){let a=GP();a[i].likes++;SP(a);render();}
+function fav(i){let a=GP();a[i].fav=!a[i].fav;SP(a);render();}
+function pin(i){let a=GP();a[i].pin=!a[i].pin;SP(a);render();}
+function delp(i){let a=GP();a.splice(i,1);SP(a);render();}
+function editp(i){let a=GP();let n=prompt("Editar",a[i].t);if(n){a[i].t=n;SP(a);render();}}
+function com(i,input){if(!input.value)return;let a=GP();a[i].comments.push(input.value);SP(a);render();}
+function searchPosts(){let q=search.value.toLowerCase();document.querySelectorAll(".post").forEach(p=>{p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";});}
+function render(){let a=GP().sort((x,y)=>y.pin-x.pin); posts.innerHTML=""; favPosts.innerHTML=""; a.forEach((p,i)=>{let d=document.createElement("div"); d.className="post"; let name=localStorage[KU("name")]||CU(); let h=(p.pin?"📌 ":"")+(p.fav?"⭐ ":"")+"<b>"+name+"</b><br>"+p.t; p.tags.forEach(t=>h+="<span class=tag>#"+t+"</span>"); if(p.img) h+="<img class=img src='"+p.img+"'>"; h+="<div>❤️ "+p.likes+"</div>"; h+=`<button onclick="like(${i})">Like</button><button onclick="fav(${i})">Fav</button><button onclick="pin(${i})">Pin</button><button onclick="editp(${i})">Edit</button><button onclick="delp(${i})">Del</button>`; p.comments.forEach(c=>h+="<div class=comment>"+c+"</div>"); h+=`<input placeholder="comentar" onkeydown="if(event.key==='Enter') com(${i},this)">`; d.innerHTML=h; posts.appendChild(d); if(p.fav) favPosts.appendChild(d.cloneNode(true));});}
+
+/* ====== PERFIL ====== */
+function saveProfile(){localStorage[KU("name")]=pname.value; localStorage[KU("bio")]=pbio.value; if(avatarInput.files[0]){let r=new FileReader(); r.onload=()=>localStorage[KU("avatar")]=r.result; r.readAsDataURL(avatarInput.files[0]);} pop("Perfil guardado");}
+
+/* ====== CHAT ====== */
+function chatKey(){return CU()+"_chat"}
+function loadChat(){let a=JSON.parse(localStorage[chatKey()]||"[]"); chatlog.innerHTML=""; a.forEach(m=>{let d=document.createElement("div"); d.className="msg"; d.innerHTML="<b>"+m.u+":</b> "+m.t; chatlog.appendChild(d);}); chatlog.scrollTop=chatlog.scrollHeight;}
+function sendChat(){let t=chatText.value.trim(); if(!t) return; let a=JSON.parse(localStorage[chatKey()]||"[]"); a.push({u:CU(),t}); localStorage[chatKey()]=JSON.stringify(a); chatText.value=""; loadChat();}
+
+/* ====== BURBUJAS ====== */
+function crearBurbuja(){let b=document.createElement("div"); b.className="bubble"; b.style.width=b.style.height=(10+Math.random()*30)+"px"; b.style.left=Math.random()*window.innerWidth+"px"; document.body.appendChild(b); setTimeout(()=>b.remove(),5000);}
+setInterval(crearBurbuja,800);
+
+/* ====== HACK ====== */
+document.addEventListener("keydown",e=>{if(!document.getElementById("hack").classList.contains("hidden") && e.key.length===1){let span=document.createElement("span"); span.style.color="#0f0"; span.innerText=e.key; hackZone.appendChild(span); hackZone.scrollTop=hackZone.scrollHeight;}});
+
+/* ====== LICENSE ====== */
+function downloadLicense(){const text=`WEB CORE — License
+Copyright (c) 2026 Red Core Studios
+All rights reserved.
+This project y su código no pueden copiarse ni modificarse sin permiso.
+`; const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="LICENSE.txt"; a.click();}
+
+/* ====== CUSTOM THEME ====== */
+function saveCustomTheme(){let b1=document.getElementById("bg1").value,b2=document.getElementById("bg2").value,txt=document.getElementById("txtC").value; localStorage.wc_customTheme=JSON.stringify({b1,b2,txt}); applyCustomTheme();pop("Tema guardado");}
+function applyCustomTheme(){let t=JSON.parse(localStorage.wc_customTheme||"{}"); if(t.b1) document.body.style.background=`linear-gradient(${t.b1},${t.b2||t.b1})`; if(t.txt) document.body.style.color=t.txt;}
+
+/* ====== INIT ====== */
+function initUser(){userLabel.innerText=CU(); view("feed"); pname.value=localStorage[KU("name")]||""; pbio.value=localStorage[KU("bio")]||""; render(); themeSel.value=localStorage.wc_theme||"aero"; setTheme();}
+window.onload=()=>{if(localStorage.wc_user){initUser();}else{view("loginPage");}}
+</script>
+</body>
+</html>

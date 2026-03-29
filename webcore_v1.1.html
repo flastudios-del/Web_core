@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WEB CORE v1.1</title>
+
+<style>
+:root{--bg1:#b8ecff;--bg2:#e6fbff;--glass:#ffffffcc;--text:#0a6fbf}
+
+/* TEMAS */
+.aero{}
+.dark{--bg1:#0b1d2a;--bg2:#12364d;--text:#9fe4ff}
+.mint{--bg1:#c8ffe8;--bg2:#ecfff7}
+.sunset{--bg1:#ffd6a5;--bg2:#fff1e0}
+.neon{--bg1:#000;--bg2:#111;--text:#00ffee}
+.matrix{--bg1:#000;--bg2:#001100;--text:#00ff55}
+.ocean{--bg1:#006994;--bg2:#00b4d8}
+.lava{--bg1:#3b0000;--bg2:#ff3c00}
+.glass{--bg1:#dfe9f3;--bg2:#ffffff}
+.retro{--bg1:#f4ecd8;--bg2:#e0c097}
+.cyberblue{--bg1:#001f3f;--bg2:#0074D9}
+.gold{--bg1:#fff6cc;--bg2:#ffd700}
+.emerald{--bg1:#004d40;--bg2:#00a86b}
+.iceblue{--bg1:#dff6ff;--bg2:#f4fbff}
+.midnight{--bg1:#000814;--bg2:#001d3d;--text:#cbd5ff}
+.terminal{--bg1:#000;--bg2:#000;--glass:#001100;--text:#33ff33}
+.chrome{--bg1:#e3e3e3;--bg2:#ffffff}
+
+/* BASE */
+body{margin:0;font-family:Arial;background:linear-gradient(var(--bg1),var(--bg2));transition:.3s}
+.side{position:fixed;left:0;top:0;bottom:0;width:230px;background:var(--glass);padding:12px;overflow:auto}
+.main{margin-left:250px;padding:20px}
+.card,.post{background:var(--glass);padding:14px;border-radius:14px;margin-bottom:14px;color:var(--text)}
+textarea,input,select{width:100%;padding:8px;border-radius:8px;border:none;margin-top:6px}
+button{padding:6px 10px;border:none;border-radius:8px;background:#9fe4ff;font-weight:bold;cursor:pointer;margin-top:6px}
+.img{max-width:100%;border-radius:10px;margin-top:8px}
+.comment{background:#ffffff88;padding:6px;border-radius:6px;margin-top:6px;font-size:13px}
+.hidden{display:none}
+.tag{font-size:11px;background:#0002;padding:2px 6px;border-radius:6px;margin-right:4px}
+.chatbox{height:240px;overflow:auto;background:#ffffffaa;padding:8px;border-radius:10px;margin-bottom:8px}
+.msg{background:#0001;padding:6px;border-radius:6px;margin-bottom:6px;font-size:14px}
+#notify{position:fixed;bottom:20px;right:20px;background:#000;color:#fff;padding:10px;border-radius:10px;display:none}
+</style>
+
+<script>
+/* ====== CUENTAS ====== */
+function accountsKey(){return "wc_accounts"}
+function createAccount(){
+  const u=document.getElementById("newUser").value.trim();
+  const p=document.getElementById("newPass").value;
+  if(!u||!p){alert("Rellena ambos campos"); return;}
+  let a=JSON.parse(localStorage[accountsKey()]||"{}");
+  if(a[u]){alert("Usuario ya existe"); return;}
+  a[u]={pass:p};
+  localStorage[accountsKey()]=JSON.stringify(a);
+  alert("Cuenta creada, ahora inicia sesión");
+}
+function login(){
+  const u=document.getElementById("loginUser").value.trim();
+  const p=document.getElementById("loginPass").value;
+  let a=JSON.parse(localStorage[accountsKey()]||"{}");
+  if(!a[u]){alert("Usuario no existe"); return;}
+  if(a[u].pass!==p){alert("Contraseña incorrecta"); return;}
+  localStorage.wc_user=u;
+  alert("Bienvenido "+u);
+  location.reload();
+}
+function logout(){
+  localStorage.removeItem("wc_user");
+  alert("Sesión cerrada");
+  location.reload();
+}
+
+/* ====== USUARIO ACTUAL ====== */
+const CU=()=>localStorage.wc_user||"guest";
+const KU=k=>CU()+"_"+k;
+function setUser(u){if(!u)return;localStorage.wc_user=u;location.reload()}
+
+/* ====== POSTS ====== */
+const GP=()=>JSON.parse(localStorage[KU("posts")]||"[]");
+const SP=a=>localStorage[KU("posts")]=JSON.stringify(a);
+
+/* ====== NAV ====== */
+function view(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+ if(id==="chat") loadChat();
+}
+
+/* ====== THEME ====== */
+function setTheme(){document.body.className=themeSel.value;localStorage.wc_theme=themeSel.value}
+
+/* ====== PERFIL ====== */
+function saveProfile(){
+ localStorage[KU("name")]=pname.value;
+ localStorage[KU("bio")]=pbio.value;
+ if(avatarInput.files[0]){
+  let r=new FileReader();
+  r.onload=()=>localStorage[KU("avatar")]=r.result;
+  r.readAsDataURL(avatarInput.files[0]);
+ }
+ pop("Perfil guardado");
+}
+
+/* ====== POSTS ====== */
+function addPost(){
+ let t=postText.value.trim(); if(!t) return;
+ let tags=tagInput.value.split(",").map(x=>x.trim()).filter(Boolean);
+ let f=imgInput.files[0];
+ if(f){
+  let r=new FileReader();
+  r.onload=()=>mk(t,r.result,tags);
+  r.readAsDataURL(f);
+ } else mk(t,null,tags);
+}
+function mk(t,img,tags){
+ let a=GP();
+ a.unshift({t,img,tags,likes:0,comments:[],fav:false,pin:false});
+ SP(a); render();
+ postText.value=""; tagInput.value=""; imgInput.value="";
+}
+function like(i){let a=GP();a[i].likes++;SP(a);render();}
+function fav(i){let a=GP();a[i].fav=!a[i].fav;SP(a);render();}
+function pin(i){let a=GP();a[i].pin=!a[i].pin;SP(a);render();}
+function delp(i){let a=GP();a.splice(i,1);SP(a);render();}
+function editp(i){let a=GP();let n=prompt("Editar",a[i].t);if(n){a[i].t=n;SP(a);render();}}
+function com(i,input){if(!input.value)return;let a=GP();a[i].comments.push(input.value);SP(a);render();}
+function searchPosts(){let q=search.value.toLowerCase();document.querySelectorAll(".post").forEach(p=>{p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";});}
+function render(){
+ let a=GP().sort((x,y)=>y.pin-x.pin);
+ posts.innerHTML=""; favPosts.innerHTML="";
+ a.forEach((p,i)=>{
+  let d=document.createElement("div");
+  d.className="post";
+  let name=localStorage[KU("name")]||CU();
+  let h=(p.pin?"📌 ":"")+(p.fav?"⭐ ":"")+"<b>"+name+"</b><br>"+p.t;
+  p.tags.forEach(t=>h+="<span class=tag>#"+t+"</span>");
+  if(p.img) h+="<img class=img src='"+p.img+"'>";
+  h+="<div>❤️ "+p.likes+"</div>";
+  h+=`<button onclick="like(${i})">Like</button>
+       <button onclick="fav(${i})">Fav</button>
+       <button onclick="pin(${i})">Pin</button>
+       <button onclick="editp(${i})">Edit</button>
+       <button onclick="delp(${i})">Del</button>`;
+  p.comments.forEach(c=>h+="<div class=comment>"+c+"</div>");
+  h+=`<input placeholder="comentar" onkeydown="if(event.key==='Enter') com(${i},this)">`;
+  d.innerHTML=h;
+  posts.appendChild(d);
+  if(p.fav) favPosts.appendChild(d.cloneNode(true));
+ });
+}
+
+/* ====== CHAT ====== */
+function chatKey(){return CU()+"_chat"}
+function loadChat(){
+ let a=JSON.parse(localStorage[chatKey()]||"[]");
+ chatlog.innerHTML="";
+ a.forEach(m=>{
+  let d=document.createElement("div");
+  d.className="msg";
+  d.innerHTML="<b>"+m.u+":</b> "+m.t;
+  chatlog.appendChild(d);
+ });
+ chatlog.scrollTop=chatlog.scrollHeight;
+}
+function sendChat(){
+ let t=chatText.value.trim();
+ if(!t) return;
+ let a=JSON.parse(localStorage[chatKey()]||"[]");
+ a.push({u:CU(),t});
+ localStorage[chatKey()]=JSON.stringify(a);
+ chatText.value="";
+ loadChat();
+}
+
+/* ====== POPUP ====== */
+function pop(t){notify.innerText=t;notify.style.display="block";setTimeout(()=>notify.style.display="none",1500);}
+
+/* ====== LICENSE ====== */
+function downloadLicense(){
+const text = `WEB CORE — License
+
+Copyright (c) 2026 Red Core Studios
+
+All rights reserved.
+
+This project and its source code may not be copied, modified,
+distributed, published, sublicensed, or sold without explicit permission.
+
+Educational viewing allowed only.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+`;
+
+const blob = new Blob([text], {type:"text/plain"});
+const a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "LICENSE.txt";
+a.click();
+}
+
+window.onload=()=>{
+ if(!localStorage.wc_user){
+   view("loginPage");
+ } else {
+   userLabel.innerText=CU();
+   themeSel.value=localStorage.wc_theme||"aero";
+   setTheme();
+   pname.value=localStorage[KU("name")]||"";
+   pbio.value=localStorage[KU("bio")]||"";
+   render();
+   view("feed");
+ }
+}
+</script>
+</head>
+
+<body class="aero">
+
+<div class="side">
+<b>WEB CORE v1.1</b><br>
+Usuario: <b id="userLabel"></b><br><br>
+
+<button onclick="view('feed')">Inicio</button>
+<button onclick="view('favs')">Favoritos</button>
+<button onclick="view('profile')">Perfil</button>
+<button onclick="view('chat')">Chat</button>
+<button onclick="downloadLicense()">LICENSE</button>
+<hr>
+
+<select id="themeSel" onchange="setTheme()" size="16">
+<option>aero</option><option>dark</option><option>mint</option>
+<option>sunset</option><option>neon</option><option>matrix</option>
+<option>ocean</option><option>lava</option><option>glass</option>
+<option>retro</option><option>cyberblue</option><option>gold</option>
+<option>emerald</option><option>iceblue</option><option>midnight</option>
+<option>terminal</option><option>chrome</option>
+</select>
+</div>
+
+<div class="main">
+
+<!-- LOGIN / REGISTER -->
+<div id="loginPage" class="page">
+<div class="card">
+<h3>Crear cuenta</h3>
+<input id="newUser" placeholder="Usuario">
+<input id="newPass" type="password" placeholder="Contraseña">
+<button onclick="createAccount()">Crear cuenta</button>
+</div>
+
+<div class="card">
+<h3>Iniciar sesión</h3>
+<input id="loginUser" placeholder="Usuario">
+<input id="loginPass" type="password" placeholder="Contraseña">
+<button onclick="login()">Entrar</button>
+<button onclick="logout()">Cerrar sesión</button>
+</div>
+</div>
+
+<!-- FEED -->
+<div id="feed" class="page hidden">
+<div class="card">
+<input id="search" placeholder="buscar" oninput="searchPosts()">
+</div>
+
+<div class="card">
+<textarea id="postText" placeholder="Escribe tu post..."></textarea>
+<input id="tagInput" placeholder="tags">
+<input type="file" id="imgInput">
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="posts"></div>
+</div>
+
+<!-- FAVORITOS -->
+<div id="favs" class="page hidden"><div id="favPosts"></div></div>
+
+<!-- PERFIL -->
+<div id="profile" class="page hidden">
+<div class="card">
+<input id="pname" placeholder="nombre">
+<input id="pbio" placeholder="bio">
+<input type="file" id="avatarInput">
+<button onclick="saveProfile()">Guardar perfil</button>
+</div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="page hidden">
+<div class="card">
+<h3>Chat WEB CORE</h3>
+<div id="chatlog" class="chatbox"></div>
+<input id="chatText" placeholder="mensaje"
+ onkeydown="if(event.key==='Enter') sendChat()">
+<button onclick="sendChat()">Enviar</button>
+</div>
+</div>
+
+</div>
+
+<div id="notify"></div>
+
+</body>
+</html>
